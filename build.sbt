@@ -33,6 +33,14 @@ lazy val sourceAnnotator = (project in file("source-annotator"))
     libraryDependencies ++= sourceAnnotatorDependencies
   )
 
+lazy val exampleCalculations = (project in file("example-calculations"))
+  .settings(commonSettings: _*)
+  .settings(
+    name := "example-calculations",
+    description := "DSL Examples to use during development of rule viewer",
+    libraryDependencies ++= exampleCalculationsDependencies
+  )
+
 lazy val webInterface = (project in file("web-interface"))
   .settings(commonSettings: _*)
   .settings(
@@ -40,17 +48,19 @@ lazy val webInterface = (project in file("web-interface"))
     description := "Web Interface",
     libraryDependencies ++= webInterfaceDependencies
   )
-  .dependsOn(sourceAnnotator)
+  .dependsOn(sourceAnnotator, exampleCalculations)
   .enablePlugins(PlayScala)
 
 
 // *** Dependencies ***
 
+lazy val scalaRulesVersion = "0.3.2-SNAPSHOT"
 lazy val scalaTestVersion = "2.2.5"
 lazy val jodaTimeVersion = "2.4"
 lazy val jodaConvertVersion = "1.8"
 
 lazy val commonDependencies = Seq(
+  "org.scala-rules" %% "rule-engine" % scalaRulesVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.7.2",
   "com.fasterxml.jackson.jaxrs" % "jackson-jaxrs-json-provider" % "2.7.3",
   "joda-time" % "joda-time" % jodaTimeVersion,
@@ -65,6 +75,12 @@ lazy val sourceAnnotatorDependencies = Seq(
 ) ++ commonDependencies
 
 lazy val webInterfaceDependencies = commonDependencies
+
+lazy val exampleCalculationsDependencies = Seq(
+  "org.scala-rules" %% "finance-dsl" % scalaRulesVersion,
+  "org.scala-rules" %% "rule-engine-test-utils" % scalaRulesVersion % Test
+) ++ commonDependencies
+
 
 // *** Static analysis ***
 
