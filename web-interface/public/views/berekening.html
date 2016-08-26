@@ -1,0 +1,115 @@
+<div>
+  <h1><span>{{berekeningId}}</span>
+
+    <div class="pull-right form-inline">
+      <div class="small form-group">
+        <label for="toggleLabels" title="Toon feitnamen"><i class="fa fa-fw fa-tags"></i></label>
+        <input id="toggleLabels" type="checkbox" alt="Verberg de feitnamen" ng-model="showLabels">
+      </div>
+      <div class="small form-group">
+        <label for="toggleConditions" title="Toon conditie-afhankelijkheden"><i class="fa fa-fw fa-code-fork"></i></label>
+        <input id="toggleConditions" type="checkbox" alt="Verberg de conditiepaden" ng-model="showConditions">
+      </div>
+      <div class="small form-group">
+        <label for="toggleEvaluations" title="Toon evaluatie-afhankelijkheden"><i class="fa fa-fw fa-plus"></i></label>
+        <input id="toggleEvaluations" type="checkbox" alt="Verberg de evaluatiepaden" ng-model="showEvaluations">
+      </div>
+      <div class="small form-group">
+        &nbsp;
+        <span style="border-left: 1px solid black"></span>
+        &nbsp;
+      </div>
+      <div class="small form-group">
+        <label for="showGraphOnly" title="Toon graaf"><i class="fa fa-fw fa-random"></i></label>
+        <input id="showGraphOnly" type="radio" name="showGraphAndSource" value="graphOnly" alt="Toon alleen de graaf" ng-model="showGraphAndSource">
+      </div>
+      <div class="small form-group">
+        <label for="showGraphAndSource" title="Toon graaf en source"><i class="fa fa-fw fa-clone"></i></label>
+        <input id="showGraphAndSource" type="radio" name="showGraphAndSource" value="graphAndSource" alt="Toon de graaf en source" ng-model="showGraphAndSource">
+      </div>
+      <div class="small form-group">
+        <label for="showSourceOnly" title="Toon source"><i class="fa fa-fw fa-bars"></i></label>
+        <input id="showSourceOnly" type="radio" name="showGraphAndSource" value="sourceOnly" alt="Toon alleen de source" ng-model="showGraphAndSource">
+      </div>
+    </div>
+  </h1>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="berekeningen-graaf-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'sourceOnly'">
+        <div id="berekeningenGraafChart" class="berekeningen-graaf-chart" ng-class="{'hide-condition-links': !showConditions, 'hide-evaluation-links': !showEvaluations, 'hide-node-labels': !showLabels}" >
+
+        </div>
+      </div>
+      <div class="berekeningen-source-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'graphOnly'" ng-include="'berekeningen/' + berekeningId + '.scala.html'">
+
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Invoerparameters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="fact in berekeningInputs | orderBy:'name' track by fact.name" ng-class="{'selected': $parent.activeFact == fact}" ng-click="selectFact(fact)">
+            <td>{{fact.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-md-4">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Uitvoerparameters</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="fact in berekeningOutputs | orderBy:'name' track by fact.name" ng-class="{'selected': activeFact == fact}" ng-click="selectFact(fact)">
+            <td>{{fact.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-md-4">
+      <div ng-if="activeFact">
+        <table class="table table-bordered">
+          <tbody>
+          <tr>
+            <th class="col-xs-1">Naam</th>
+            <td>{{activeFact.name}}</td>
+          </tr>
+          <tr>
+            <th>Type</th>
+            <td><code>{{activeFact.valueClass|javatype}}</code></td>
+          </tr>
+          <tr>
+            <th>Omschrijving</th>
+            <td>{{activeFact.description}}</td>
+          </tr>
+          <tr>
+            <th>Gebruikt in</th>
+            <td>
+              <ul>
+                <li ng-repeat="(berekening, usage) in activeFact.usedIn">{{berekening}} <span ng-bind-html="usage | usages"></span></li>
+              </ul>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div ng-if="!activeFact">
+        Kies een feit uit de lijst om de omschrijving te zien.
+      </div>
+    </div>
+
+  </div>
+</div>

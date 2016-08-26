@@ -2,9 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
 
+  <link rel="stylesheet" href="stylesheets/bootstrap.min.css">
+  <link rel="stylesheet" href="stylesheets/font-awesome.min.css">
+  <link rel="stylesheet" href="stylesheets/berekeningen.css">
+
+  <script src="javascripts/ElementQueries.js"></script>
+  <script src="javascripts/ResizeSensor.js"></script>
+
+  <script src="javascripts/angular.min.js"></script>
+  <script src="javascripts/ui-bootstrap-tpls-1.2.4.min.js"></script>
+  <script src="javascripts/d3.v2.min.js"></script>
+  <script src="javascripts/sankey.js"></script>
+  <script src="javascripts/berekening-graph.js"></script>
+
+  <title>Berekeningen - Documentatie</title>
+</head>
+<body class="container-fluid" ng-app="berekeningen">
+<nav class="navbar navbar-inverse navbar-fixed-top" ng-controller="HeaderController">
+  <div class="container-fuid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="./">
+        <i class="fa fa-calculator" ng-class="{'fa-spin': stillLoading}"></i> Berekeningen
+      </a>
+
+    </div>
+
+    <div class="navbar-collapse collapse">
+      <form class="navbar-form navbar-right">
+        <button class="btn" ng-click="goHome()">Home</button>
+        <select class="form-control" ng-model="selectedBerekening" ng-change="jumpToBerekening()">
+          <option value="--not-selected--">Snel naar een berekening...</option>
+          <option ng-repeat="b in berekeningen | orderBy:'name' track by b.name">{{b.name}}</option>
+        </select>
+      </form>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid" ng-view></div>
+
+<script src="javascripts/angular-route.min.js"></script>
+<script src="javascripts/angular-sanitize.min.js"></script>
+<script src="javascripts/berekeningen-app.js"></script>
 </body>
 </html>

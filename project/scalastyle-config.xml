@@ -1,5 +1,5 @@
 <scalastyle>
-    <name>Rabobank standard configuration</name>
+    <name>ScalaRules standard configuration</name>
 
     <check level="warning" class="org.scalastyle.file.FileLengthChecker" enabled="true">
         <parameters>
