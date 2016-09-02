@@ -102,6 +102,8 @@ lazy val staticAnalysisSettings = {
 
 addCommandAlias("verify", ";compileScalastyle;testScalastyle;coverage;test;coverageReport;coverageAggregate")
 
+// This command alias allows IntelliJ to start the web interface as well (use it as the target for an SBT Task run configuration)
+addCommandAlias("runWebInterface", ";project webInterface;run")
 
 
 // *** Publishing ***
