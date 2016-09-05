@@ -31,7 +31,7 @@ object DerivationsToGraphModel {
     val nodeModels = nodesWithIndex.map{ case (n, i) => GraphNode(i, n, nodeToType(n), nodeToExpressions(n)) }
     val edgeModels = edges.map{ case (source, target, typeOfNode) => buildEdge(source, target, typeOfNode, nodeToIndexMap) }
 
-    Graph("nom", nodeModels, edgeModels)
+    Graph(derivation.getClass.getSimpleName, nodeModels, edgeModels)
   }
 
   private def determineEdgeType(input: Fact[Any], conditionInputs: List[Fact[Any]], evaluationInputs: List[Fact[Any]]) = (conditionInputs contains input, evaluationInputs contains input) match {

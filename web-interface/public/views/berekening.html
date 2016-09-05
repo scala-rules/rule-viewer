@@ -1,38 +1,50 @@
 <div>
-  <h1><span>{{berekeningId}}</span>
+  <div class="derivation-title-bar">
+    <div class="derivation-title">
+      <ol class="derivation-package small breadcrumb">
+        <li ng-repeat="p in berekeningPackage">{{p}}</li>
+      </ol>
+    </div>
+  </div>
 
-    <div class="pull-right form-inline">
-      <div class="small form-group">
-        <label for="toggleLabels" title="Toon feitnamen"><i class="fa fa-fw fa-tags"></i></label>
-        <input id="toggleLabels" type="checkbox" alt="Verberg de feitnamen" ng-model="showLabels">
+  <div class="derivation-toolbar container-fluid">
+    <div class="row">
+      <div class="col-md-10 derivation-name">
+        <h1>{{berekeningName}}</h1>
       </div>
-      <div class="small form-group">
-        <label for="toggleConditions" title="Toon conditie-afhankelijkheden"><i class="fa fa-fw fa-code-fork"></i></label>
-        <input id="toggleConditions" type="checkbox" alt="Verberg de conditiepaden" ng-model="showConditions">
-      </div>
-      <div class="small form-group">
-        <label for="toggleEvaluations" title="Toon evaluatie-afhankelijkheden"><i class="fa fa-fw fa-plus"></i></label>
-        <input id="toggleEvaluations" type="checkbox" alt="Verberg de evaluatiepaden" ng-model="showEvaluations">
-      </div>
-      <div class="small form-group">
-        &nbsp;
-        <span style="border-left: 1px solid black"></span>
-        &nbsp;
-      </div>
-      <div class="small form-group">
-        <label for="showGraphOnly" title="Toon graaf"><i class="fa fa-fw fa-random"></i></label>
-        <input id="showGraphOnly" type="radio" name="showGraphAndSource" value="graphOnly" alt="Toon alleen de graaf" ng-model="showGraphAndSource">
-      </div>
-      <div class="small form-group">
-        <label for="showGraphAndSource" title="Toon graaf en source"><i class="fa fa-fw fa-clone"></i></label>
-        <input id="showGraphAndSource" type="radio" name="showGraphAndSource" value="graphAndSource" alt="Toon de graaf en source" ng-model="showGraphAndSource">
-      </div>
-      <div class="small form-group">
-        <label for="showSourceOnly" title="Toon source"><i class="fa fa-fw fa-bars"></i></label>
-        <input id="showSourceOnly" type="radio" name="showGraphAndSource" value="sourceOnly" alt="Toon alleen de source" ng-model="showGraphAndSource">
+      <div class="col-md-2 form-inline">
+        <div class="small form-group">
+          <label for="toggleLabels" title="Toon feitnamen"><i class="fa fa-fw fa-tags"></i></label>
+          <input id="toggleLabels" type="checkbox" alt="Verberg de feitnamen" ng-model="showLabels">
+        </div>
+        <div class="small form-group">
+          <label for="toggleConditions" title="Toon conditie-afhankelijkheden"><i class="fa fa-fw fa-code-fork"></i></label>
+          <input id="toggleConditions" type="checkbox" alt="Verberg de conditiepaden" ng-model="showConditions">
+        </div>
+        <div class="small form-group">
+          <label for="toggleEvaluations" title="Toon evaluatie-afhankelijkheden"><i class="fa fa-fw fa-plus"></i></label>
+          <input id="toggleEvaluations" type="checkbox" alt="Verberg de evaluatiepaden" ng-model="showEvaluations">
+        </div>
+        <div class="small form-group">
+          &nbsp;
+          <span style="border-left: 1px solid black"></span>
+          &nbsp;
+        </div>
+        <div class="small form-group">
+          <label for="showGraphOnly" title="Toon graaf"><i class="fa fa-fw fa-random"></i></label>
+          <input id="showGraphOnly" type="radio" name="showGraphAndSource" value="graphOnly" alt="Toon alleen de graaf" ng-model="showGraphAndSource">
+        </div>
+        <div class="small form-group">
+          <label for="showGraphAndSource" title="Toon graaf en source"><i class="fa fa-fw fa-clone"></i></label>
+          <input id="showGraphAndSource" type="radio" name="showGraphAndSource" value="graphAndSource" alt="Toon de graaf en source" ng-model="showGraphAndSource">
+        </div>
+        <div class="small form-group">
+          <label for="showSourceOnly" title="Toon source"><i class="fa fa-fw fa-bars"></i></label>
+          <input id="showSourceOnly" type="radio" name="showGraphAndSource" value="sourceOnly" alt="Toon alleen de source" ng-model="showGraphAndSource">
+        </div>
       </div>
     </div>
-  </h1>
+  </div>
 
   <div class="container-fluid">
     <div class="row">
@@ -41,7 +53,7 @@
 
         </div>
       </div>
-      <div class="berekeningen-source-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'graphOnly'" ng-include="'berekeningen/' + berekeningId + '.scala.html'">
+      <div class="berekeningen-source-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'graphOnly'" ng-include="'/api/sources/' + berekeningId">
 
       </div>
     </div>

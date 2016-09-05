@@ -5,6 +5,8 @@ GET /api/derivations                                                        cont
 GET /api/derivations/:id                                                    controllers.DerivationsController.byId(id)
 GET /api/glossaries                                                         controllers.GlossariesController.list
 GET /api/glossaries/:id                                                     controllers.GlossariesController.byId(id)
+GET /api/sources/:id                                                        controllers.SourcesController.sourcesFor(id)
+
 GET /api/meta/derivations                                                   controllers.DerivationsController.listConfiguration
 GET /api/meta/derivations/:id                                               controllers.DerivationsController.configurationById(id)
 GET /api/meta/glossaries                                                    controllers.GlossariesController.listConfiguration
