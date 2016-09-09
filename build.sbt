@@ -54,7 +54,7 @@ lazy val webInterface = (project in file("web-interface"))
 
 // *** Dependencies ***
 
-lazy val scalaRulesVersion = "0.3.3"
+lazy val scalaRulesVersion = "0.3.3-1"
 lazy val scalaTestVersion = "2.2.5"
 lazy val jodaTimeVersion = "2.4"
 lazy val jodaConvertVersion = "1.8"
