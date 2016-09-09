@@ -33,7 +33,7 @@
         <button class="btn" ng-click="goHome()">Home</button>
         <select class="form-control" ng-model="selectedBerekening" ng-change="jumpToBerekening()">
           <option value="--not-selected--">Snel naar een berekening...</option>
-          <option ng-repeat="b in berekeningen | orderBy:'name' track by b.name">{{b.name}}</option>
+          <option ng-repeat="b in berekeningen | orderBy:'name' track by b.name">{{b.name|javatype}}</option>
         </select>
       </form>
     </div>

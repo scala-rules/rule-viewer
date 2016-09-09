@@ -17,7 +17,7 @@ import scala.io.Source
 @Singleton
 class SourcesController @Inject() (configuration: Configuration, environment: Environment, derivationsService: DerivationsService) extends Controller {
 
-  private val sourceRoot = configuration.getString("derivations.sourceRoot").getOrElse("public/sources/")
+  private val sourceRoot = configuration.getString("sources.root").getOrElse("public/sources/")
 
   def sourcesFor(derivationName: String) = Action({ _ =>
     val sourceToLoad = sourceRoot + fqnToRelativePath(derivationName) + ".scala"
@@ -25,7 +25,7 @@ class SourcesController @Inject() (configuration: Configuration, environment: En
     val derivation = derivationsService.findById(derivationName)
 
     if (inputFile.isEmpty || derivation.isEmpty) {
-      NotFound
+      Ok.sendFile(environment.getExistingFile("public/sources/no-source-available.html").get)
     }
     else {
       Result(

@@ -110,7 +110,7 @@
             <th>Gebruikt in</th>
             <td>
               <ul>
-                <li ng-repeat="(berekening, usage) in activeFact.usedIn">{{berekening}} <span ng-bind-html="usage | usages"></span></li>
+                <li ng-repeat="(berekening, usage) in activeFact.usedIn">{{berekening|javatype}} <span ng-bind-html="usage | usages"></span></li>
               </ul>
             </td>
           </tr>
