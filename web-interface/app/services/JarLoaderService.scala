@@ -12,6 +12,14 @@ import scala.collection.JavaConverters._
 import scala.reflect.runtime.universe._
 import scala.util.{Failure, Success, Try}
 
+/**
+  * This service is tasked with loading JAR-files and scanning it for usable classes. It currently supports loading
+  * Glossary and Berekening types.
+  *
+  * After initialization, this service provides access to the JARs which were attempted to load.
+  *
+  * @param configuration Play application configuration (injected)
+  */
 @Singleton
 class JarLoaderService @Inject() (configuration: Configuration) {
 
@@ -24,7 +32,7 @@ class JarLoaderService @Inject() (configuration: Configuration) {
 
   val jarStatusses: Map[String, String] = triedJars.map {
     case (jarName: String, Success(_)) => (jarName, "Loaded")
-    case (jarName: String, Failure(exception)) => (jarName, s"Failed to load: ${exception.getMessage.takeWhile( ch => (ch != '{') )})}")
+    case (jarName: String, Failure(exception)) => (jarName, s"Failed to load: ${exception.getMessage.takeWhile( ch => ch != '{' )})}")
   }
 
   private def loadJar(location: String): Try[JarLoadingResults] = Try({
@@ -42,17 +50,19 @@ class JarLoaderService @Inject() (configuration: Configuration) {
 
     JarLoadingResults(
       jarName = location,
-      glossaries = triedGlossaries.collect { case Success(glossary) => glossary }.toList,
-      derivations = triedDerivations.collect { case Success(derivation) => derivation }.toList
+      glossaries = triedGlossaries.collect { case Success(glossary) => glossary },
+      derivations = triedDerivations.collect { case Success(derivation) => derivation }
     )
   })
 
   private def scanAndLoadClasses[T](entries: List[JarEntry], loader: SpecializedClassLoader[T], classLoader: URLClassLoader, mirror: Mirror): List[Try[T]] = {
     entries.map( entry => entry.getName.dropRight(JarLoaderService.CLASS_FILE_SUFFIX.length).replaceAll("/", ".") )
-      .filter( className => loader.precondition(className) )
-      .map( className => loader.preprocessClassName(className, classLoader) )
-      .map( finalClassName => loader.load(finalClassName, mirror) )
-      .toList
+      .filter( loader.precondition )
+      .map( loader.preprocessClassName )
+      .map( finalClassName => {
+        classLoader.loadClass( finalClassName )
+        loader.load(finalClassName, mirror)
+      })
   }
 
 }
@@ -63,20 +73,54 @@ object JarLoaderService {
 
 case class JarLoadingResults(jarName: String, glossaries: List[Glossary], derivations: List[Berekening])
 
+/**
+  * Implementations of this trait are used by the JarLoaderService to identify and load certain classes and objects from
+  * a JAR-file.
+  *
+  * @tparam T the super type shared by all objects / classes loaded by this loader.
+  */
 trait SpecializedClassLoader[T] {
+
+  /**
+    * A first chance for a loader to skip certain class names. Note that these are the raw names of .class-files within a JAR
+    * that is being loaded. You need to be aware of Scala's specific naming policies for things like objects and scripts.
+    *
+    * @param className the (unprocessed) name of a .class-file which is present in the JAR-file being examined. The '.class'-suffix
+    *                  will have been removed before calling this function.
+    * @return true if you wish to attempt to load something from this particular class, false i fyou wish to skip it.
+    */
   def precondition(className: String): Boolean
-  def preprocessClassName(className: String, classLoader: URLClassLoader): String
+
+  /**
+    * After filtering out unwanted entries, the JarLoaderService will call this method to allow the loader to do a little preprocessing
+    * on the raw class name. Note that the result of this function will be passed on to the Java classloader to attempt to actually load
+    * the class.
+    *
+    * @param className the (unprocessed) name of a .class-file which was previously selected for loading.
+    * @return the potentially altered name of the class to ask the ClassLoader to load.
+    */
+  def preprocessClassName(className: String): String
+
+  /**
+    * After filtering and preprocessing, it is now possible to attempt to load the class or object. This function is tasked with doing
+    * just that. When successful, it should return a Success-value, wrapping the loaded value.
+    *
+    * @param className the preprocessed name of a class to load.
+    * @param mirror the current Scala reflection mirror.
+    * @return the loaded object or (instance of a) class, wrapped in a Success-value, or Failure if anything went wrong.
+    */
   def load(className: String, mirror: Mirror): Try[T]
 }
 
+/**
+  * Processes JAR-entries looking for objects extending Glossary.
+  */
 class GlossaryClassLoader extends SpecializedClassLoader[Glossary] {
+  // Note: since Glossaries are objects, we should only consider classes ending with a $, as per the Scala compiler's naming convention
   override def precondition(className: String): Boolean = className.endsWith("$")
 
-  override def preprocessClassName(className: String, classLoader: URLClassLoader): String = {
-    val finalClassName = className.dropRight(1)
-    classLoader.loadClass(finalClassName)
-    finalClassName
-  }
+  // Note: the dropRight(1) ensures the $-sign at the end of the name is removed. The Scala mirror will have no clue what to with the $ and simply requires the name of the object.
+  override def preprocessClassName(className: String): String = className.dropRight(1)
 
   override def load(className: String, mirror: _root_.scala.reflect.runtime.universe.Mirror): Try[Glossary] = Try({
     val glossaryModule: ModuleSymbol = mirror.staticModule(className).asModule
@@ -87,13 +131,14 @@ class GlossaryClassLoader extends SpecializedClassLoader[Glossary] {
   })
 }
 
+/**
+  * Processes JAR-entries looking for classes extending Berekening, which we will instantiate.
+  */
 class DerivationClassLoader extends SpecializedClassLoader[Berekening] {
+  // Note: since Berekeningen are classes, we should only consider classes NOT ending with a $, because those are objects.
   override def precondition(className: String): Boolean = !className.endsWith("$")
 
-  override def preprocessClassName(className: String, classLoader: URLClassLoader): String = {
-    classLoader.loadClass(className)
-    className
-  }
+  override def preprocessClassName(className: String): String = className
 
   override def load(className: String, mirror: _root_.scala.reflect.runtime.universe.Mirror): Try[Berekening] = Try({
     val derivationClass: ClassSymbol = mirror.staticClass(className)
