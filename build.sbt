@@ -23,15 +23,7 @@ lazy val ruleViewerRoot = (project in file("."))
     name := "rule-viewer",
     description := "Scala Rules Rule Viewer"
   )
-  .aggregate(sourceAnnotator, webInterface)
-
-lazy val sourceAnnotator = (project in file("source-annotator"))
-  .settings(commonSettings: _*)
-  .settings(
-    name := "source-annotator",
-    description := "DSL Source Annotator",
-    libraryDependencies ++= sourceAnnotatorDependencies
-  )
+  .aggregate(webInterface)
 
 lazy val exampleCalculations = (project in file("example-calculations"))
   .settings(commonSettings: _*)
@@ -48,7 +40,7 @@ lazy val webInterface = (project in file("web-interface"))
     description := "Web Interface",
     libraryDependencies ++= webInterfaceDependencies
   )
-  .dependsOn(sourceAnnotator, exampleCalculations)
+  .dependsOn(exampleCalculations)
   .enablePlugins(PlayScala)
 
 
@@ -69,10 +61,6 @@ lazy val commonDependencies = Seq(
   "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
   "com.storm-enroute" %% "scalameter" % "0.7" % Test
 )
-
-lazy val sourceAnnotatorDependencies = Seq(
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
-) ++ commonDependencies
 
 lazy val webInterfaceDependencies = commonDependencies
 
