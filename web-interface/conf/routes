@@ -17,6 +17,7 @@ GET /api/meta/jars/:id                                                      cont
 # Routes for static parts of the application
 
 GET /                                                                       controllers.Assets.at(path = "/public", file = "index.html")
+GET /favicon.ico                                                            controllers.Assets.at(path = "/public", file = "favicon.ico")
 GET /views/*file                                                            controllers.Assets.at(path = "/public/views", file)
 GET /stylesheets/*file                                                      controllers.Assets.at(path = "/public/stylesheets", file)
 GET /javascripts/*file                                                      controllers.Assets.at(path = "/public/javascripts", file)
