@@ -6,19 +6,18 @@ GET /api/derivations/:id                                                    cont
 GET /api/glossaries                                                         controllers.GlossariesController.list
 GET /api/glossaries/:id                                                     controllers.GlossariesController.byId(id)
 GET /api/sources/:id                                                        controllers.SourcesController.sourcesFor(id)
+GET /api/jars                                                               controllers.JarsController.list
+GET /api/jars/:id                                                           controllers.JarsController.byId(id)
 
-GET /api/meta/derivations                                                   controllers.DerivationsController.listConfiguration
-GET /api/meta/derivations/:id                                               controllers.DerivationsController.configurationById(id)
-GET /api/meta/glossaries                                                    controllers.GlossariesController.listConfiguration
-GET /api/meta/glossaries/:id                                                controllers.GlossariesController.configurationById(id)
-
-
+GET /api/meta/jars                                                          controllers.JarsController.listConfiguration
+GET /api/meta/jars/:id                                                      controllers.JarsController.configurationById(id)
 
 
 
 # Routes for static parts of the application
 
 GET /                                                                       controllers.Assets.at(path = "/public", file = "index.html")
+GET /favicon.ico                                                            controllers.Assets.at(path = "/public", file = "favicon.ico")
 GET /views/*file                                                            controllers.Assets.at(path = "/public/views", file)
 GET /stylesheets/*file                                                      controllers.Assets.at(path = "/public/stylesheets", file)
 GET /javascripts/*file                                                      controllers.Assets.at(path = "/public/javascripts", file)

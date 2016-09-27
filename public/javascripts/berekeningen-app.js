@@ -177,9 +177,9 @@
       $scope.activeFact = f;
     };
 
-    $scope.factSearch = '';
+    $scope.factSearch = {name:''};
     $scope.resetSearch = function() {
-      $scope.factSearch = '';
+      $scope.factSearch.name = '';
     };
   }
 

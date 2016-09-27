@@ -17,49 +17,24 @@ lazy val commonSettings = Seq(
 
 // *** Projects ***
 
-lazy val ruleViewerRoot = (project in file("."))
+lazy val ruleViewer = (project in file("."))
   .settings(commonSettings: _*)
   .settings(
     name := "rule-viewer",
-    description := "Scala Rules Rule Viewer"
+    description := "Scala Rules Rule Viewer",
+    libraryDependencies ++= dependencies
   )
-  .aggregate(sourceAnnotator, webInterface)
-
-lazy val sourceAnnotator = (project in file("source-annotator"))
-  .settings(commonSettings: _*)
-  .settings(
-    name := "source-annotator",
-    description := "DSL Source Annotator",
-    libraryDependencies ++= sourceAnnotatorDependencies
-  )
-
-lazy val exampleCalculations = (project in file("example-calculations"))
-  .settings(commonSettings: _*)
-  .settings(
-    name := "example-calculations",
-    description := "DSL Examples to use during development of rule viewer",
-    libraryDependencies ++= exampleCalculationsDependencies
-  )
-
-lazy val webInterface = (project in file("web-interface"))
-  .settings(commonSettings: _*)
-  .settings(
-    name := "web-interface",
-    description := "Web Interface",
-    libraryDependencies ++= webInterfaceDependencies
-  )
-  .dependsOn(sourceAnnotator, exampleCalculations)
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, UniversalDeployPlugin)
 
 
 // *** Dependencies ***
 
-lazy val scalaRulesVersion = "0.3.3-SNAPSHOT"
+lazy val scalaRulesVersion = "0.3.4"
 lazy val scalaTestVersion = "2.2.5"
 lazy val jodaTimeVersion = "2.4"
 lazy val jodaConvertVersion = "1.8"
 
-lazy val commonDependencies = Seq(
+lazy val dependencies = Seq(
   "org.scala-rules" %% "rule-engine" % scalaRulesVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.7.2",
   "com.fasterxml.jackson.jaxrs" % "jackson-jaxrs-json-provider" % "2.7.3",
@@ -69,18 +44,6 @@ lazy val commonDependencies = Seq(
   "org.scalacheck" %% "scalacheck" % "1.12.5" % Test,
   "com.storm-enroute" %% "scalameter" % "0.7" % Test
 )
-
-lazy val sourceAnnotatorDependencies = Seq(
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4"
-) ++ commonDependencies
-
-lazy val webInterfaceDependencies = commonDependencies
-
-lazy val exampleCalculationsDependencies = Seq(
-  "org.scala-rules" %% "finance-dsl" % scalaRulesVersion,
-  "org.scala-rules" %% "rule-engine-test-utils" % scalaRulesVersion % Test
-) ++ commonDependencies
-
 
 // *** Static analysis ***
 
@@ -102,10 +65,6 @@ lazy val staticAnalysisSettings = {
 
 addCommandAlias("verify", ";compileScalastyle;testScalastyle;coverage;test;coverageReport;coverageAggregate")
 
-// This command alias allows IntelliJ to start the web interface as well (use it as the target for an SBT Task run configuration)
-addCommandAlias("runWebInterface", ";project webInterface;run")
-
-
 // *** Publishing ***
 
 lazy val publishSettings = Seq(
@@ -121,6 +80,18 @@ lazy val publishSettings = Seq(
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
   }
 )
+
+val packageDist = taskKey[File]("package-dist")
+
+packageDist := (baseDirectory in Compile).value / "target" / "universal" / (name.value + "-" + version.value + ".tgz")
+
+artifact in (Universal, packageDist) ~= { (art:Artifact) => art.copy(`type` = "tgz", extension = "tgz") }
+
+addArtifact(artifact in (Universal, packageDist), packageDist in Universal)
+
+publish <<= (publish) dependsOn (packageZipTarball in Universal)
+publishM2 <<= (publishM2) dependsOn (packageZipTarball in Universal)
+publishLocal <<= (publishLocal) dependsOn (packageZipTarball in Universal)
 
 lazy val pom =
   <developers>
