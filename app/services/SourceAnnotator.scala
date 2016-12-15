@@ -2,8 +2,8 @@ package services
 
 import java.io.Writer
 
+import org.scalarules.derivations.Derivation
 import org.scalarules.dsl.nl.grammar.Berekening
-import org.scalarules.engine.Derivation
 import org.scalarules.utils.{FileSourcePosition, SourcePosition}
 
 import scala.annotation.tailrec

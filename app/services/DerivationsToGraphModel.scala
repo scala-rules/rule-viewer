@@ -1,9 +1,10 @@
 package services
 
 import models.graph.{Graph, GraphEdge, GraphNode}
+import org.scalarules.derivations.DerivationTools._
+import org.scalarules.derivations.{DefaultDerivation, SubRunDerivation}
 import org.scalarules.dsl.nl.grammar.Berekening
-import org.scalarules.engine.DerivationTools._
-import org.scalarules.engine.{DefaultDerivation, Fact, SubRunDerivation}
+import org.scalarules.facts.Fact
 
 object DerivationsToGraphModel {
 
