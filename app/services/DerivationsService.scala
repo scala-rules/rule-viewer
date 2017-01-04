@@ -6,9 +6,6 @@ import models.graph.Graph
 import org.scalarules.dsl.nl.grammar.Berekening
 import play.api.Configuration
 
-import scala.collection.JavaConverters._
-import scala.util.{Failure, Success, Try}
-
 @Singleton
 class DerivationsService @Inject() (configuration: Configuration, jarLoaderService: JarLoaderService) {
 
