@@ -27,6 +27,23 @@
       }
     };
   });
+
+  app.filter('scalatype', function() {
+    return function(input) {
+      if (input) {
+        var elems = input.split('.');
+        var name = elems[elems.length - 1];
+        if (name[name.length - 1] == '$') {
+          name = name.substr(0, name.length - 1);
+        }
+        return name;
+      }
+      else {
+        return '';
+      }
+    };
+  });
+
   app.filter('usages', function() {
     var signIn = '<i class="fa fa-fw fa-sign-in" title="Gebruikt als invoer"></i>';
     var signOut = '<i class="fa fa-fw fa-sign-out" title="Gebruikt als uitvoer"></i>';
@@ -107,25 +124,44 @@
     }
   }]);
 
-  app.controller('HeaderController', ['$scope', '$q', '$location', 'BerekeningenService', 'GlossaryService', HeaderController]);
+  app.controller('HeaderController', ['$scope', '$q', '$location', 'BerekeningenService', 'GlossaryService', 'ExecutionService', HeaderController]);
   app.controller('DashboardController', ['$scope', '$q', 'BerekeningenService', 'GlossaryService', 'UsedByService', DashboardController]);
-  app.controller('BerekeningController', ['$scope', '$routeParams', '$q', 'BerekeningenService', 'GlossaryService', 'UsedByService', BerekeningController]);
+  app.controller('BerekeningController', ['$scope', '$routeParams', '$q', 'BerekeningenService', 'GlossaryService', 'UsedByService', 'ExecutionService', BerekeningController]);
 
   app.factory('GlossaryService', ['$http', GlossaryService]);
-  app.factory('BerekeningenService', ['$http', '$q', BerekeningenService]);
+  app.factory('BerekeningenService', ['$http', '$q', '$filter', BerekeningenService]);
   app.factory('UsedByService', ['$q', 'GlossaryService', 'BerekeningenService', UsedByService]);
+  app.factory('ExecutionService', ['$http', ExecutionService]);
 
-  function BerekeningController($scope, $routeParams, $q, BerekeningenService, GlossaryService, UsedByService) {
+  function BerekeningController($scope, $routeParams, $q, BerekeningenService, GlossaryService, UsedByService, ExecutionService) {
     var nameComponents = $routeParams.id.split('.');
     $scope.berekeningId = $routeParams.id;
     $scope.berekeningName = nameComponents.pop();
     $scope.berekeningPackage = nameComponents;
-    $scope.showLabels = true;
-    $scope.showConditions = true;
-    $scope.showEvaluations = true;
-    $scope.showGraphAndSource = 'graphOnly';
+    $scope.toggles = {
+      showLabels: true,
+      showConditions: true,
+      showEvaluations: true,
+      showGraphAndSource: 'graphOnly',
+      showIntermediates: false,
+      showExecutionConfig: false,
+      hasExecutionHistory: false,
+      showLoadingIndicator: false,
+      showInputFields: true
+    };
     $scope.berekeningInputs = [];
     $scope.berekeningOutputs = [];
+    $scope.berekeningIntermediates = [];
+    $scope.context = {};
+    $scope.originalInput = {};
+    $scope.endpoints = ExecutionService.endpoints();
+    $scope.selectedEndpoint;
+
+    ExecutionService.loaded().then(function() {
+      if (ExecutionService.endpoints().length > 0) {
+        $scope.selectedEndpoint = ExecutionService.endpoints()[0];
+      }
+    });
 
     var getBerekeningPromise = BerekeningenService.getBerekening($scope.berekeningId).then(function(berekening) {
       $scope.berekening = berekening;
@@ -133,13 +169,14 @@
       $scope.hoveredNode = undefined;
 
       initBerekeningGraph(document.getElementById('berekeningenGraafChart'), berekening, GlossaryService.dictionary(), $scope, 'selectedNode', 'hoveredNode');
-    }, function() {
-      console.error('No berekening found');
+    }, function(err) {
+      console.error('No berekening found', err);
     });
 
     $q.all([getBerekeningPromise, GlossaryService.loaded()]).then(function() {
       $scope.berekening.inputs.forEach(function(i) { $scope.berekeningInputs.push(GlossaryService.dictionary()[$scope.berekening.nodes[i].name]); });
       $scope.berekening.outputs.forEach(function(i) { $scope.berekeningOutputs.push(GlossaryService.dictionary()[$scope.berekening.nodes[i].name]); });
+      $scope.berekening.intermediates.forEach(function(i) { $scope.berekeningIntermediates.push(GlossaryService.dictionary()[$scope.berekening.nodes[i].name]); });
     });
 
     $scope.activeFact = undefined;
@@ -147,6 +184,79 @@
     $scope.selectFact = function(f) {
       $scope.activeFact = f;
     };
+
+    $scope.calculate = {
+      hasNoValuesInContext: !angular.equals($scope.context, {}),
+      lastResultSuccess: false,
+      lastResultErrors: {},
+      execute: function() {
+        $scope.toggles.hasExecutionHistory = true;
+        $scope.toggles.showLoadingIndicator = true;
+        sanitizeContext($scope.context);
+        copyContextValuesFromSource($scope.originalInput, $scope.context);
+        ExecutionService.execute($scope.selectedEndpoint, $scope.context).then(function(response) {
+          $scope.toggles.showLoadingIndicator = false;
+          $scope.calculate.lastResultSuccess = response.status === 200;
+          $scope.calculate.lastResultErrors = [];
+          if (response.data) {
+            if ( response.status === 200 ) {
+              copyContextValuesFromSource($scope.context, response.data.facts);
+            }
+            else {
+              response.data.obj.forEach(function(errorMessage) {
+                $scope.calculate.lastResultErrors.push(errorMessage.msg);
+              });
+            }
+          }
+        }).catch(function(err) {
+          $scope.toggles.showLoadingIndicator = false;
+          $scope.calculate.lastResultSuccess = false;
+          $scope.calculate.lastResultErrors = [
+            'Algemene fout bij uitvoeren servicer: ' + err
+          ];
+        });
+      },
+      resetInput: function() {
+        copyContextValuesFromSource($scope.context, $scope.originalInput);
+      },
+      resetAll: function() {
+        copyContextValuesFromSource($scope.context, {});
+        copyContextValuesFromSource($scope.originalInput, {});
+      }
+    };
+
+    $scope.$watch(function() {
+      var oldContext = {}, contextChanged = false, changeCounter = 0;
+      return function() {
+        contextChanged = !angular.equals($scope.context, oldContext);
+        copyContextValuesFromSource(oldContext, $scope.context);
+        console.log('Checking context', contextChanged, changeCounter);
+        return contextChanged ? ++changeCounter : changeCounter;
+      };
+    }(), function() {
+      $scope.calculate.hasNoValuesInContext = angular.equals($scope.context, {});
+    });
+
+    function copyContextValuesFromSource(target, template) {
+      for ( var p in target ) {
+        if (target.hasOwnProperty(p) && !template.hasOwnProperty(p)) {
+          delete target[p];
+        }
+      }
+      for ( var p in template ) {
+        if (template.hasOwnProperty(p)) {
+          target[p] = template[p];
+        }
+      }
+    }
+
+    function sanitizeContext(target) {
+      for ( var p in target ) {
+        if (target.hasOwnProperty(p) && target[p] === '') {
+          delete target[p];
+        }
+      }
+    }
 
     $scope.$watch(function() {
       return '' + $scope.selectedNode + ':' + $scope.hoveredNode;
@@ -184,7 +294,7 @@
   }
 
   var NOT_SELECTED_A_BEREKENING = '--not-selected--';
-  function HeaderController($scope, $q, $location, BerekeningenService, GlossaryService) {
+  function HeaderController($scope, $q, $location, BerekeningenService, GlossaryService, ExecutionService) {
     $scope.stillLoading = true;
     $scope.berekeningen = BerekeningenService.berekeningen();
     $scope.selectedBerekening = NOT_SELECTED_A_BEREKENING;
@@ -200,7 +310,7 @@
       $location.url('/');
     };
 
-    $q.all([BerekeningenService.loaded(), GlossaryService.loaded()]).then(function() {
+    $q.all([BerekeningenService.loaded(), GlossaryService.loaded(), ExecutionService.loaded()]).then(function() {
       $scope.stillLoading = false;
     });
   }
@@ -256,6 +366,8 @@
               var fact = glossary[p];
               fact.usedIn = {};
               fact.containedIn = g;
+              fact.id = 'fact-' + g + '-' + p;
+              fact.glossary = g;
               newFacts.push(fact);
               squashedGlossaries[fact.name] = fact;
             }
@@ -268,7 +380,7 @@
     }
   }
 
-  function BerekeningenService($http, $q) {
+  function BerekeningenService($http, $q, $filter) {
     var allBerekeningen = [{ name: 'Loading...' }];
     var berekeningen = {};
     var loadingPromise = reloadBerekeningen();
@@ -317,6 +429,7 @@
         if ( bs.hasOwnProperty(p) ) {
           var berekening = bs[p];
           berekening.name = p;
+          berekening.displayName = $filter('scalatype')(p);
 
           newBerekeningen.push(bs[p]);
           berekeningen[p] = bs[p];
@@ -356,6 +469,48 @@
     });
 
     return {};
+  }
+
+  function ExecutionService($http) {
+    var availableEndpoints = [];
+    var loadingPromise = reloadEndpoints();
+
+    return {
+      endpoints: function() {
+        return availableEndpoints;
+      },
+      loaded: function() {
+        return loadingPromise
+      },
+      execute: function(endpoint, context) {
+        return callService(endpoint, context);
+      }
+    };
+
+    function reloadEndpoints() {
+      return $http({
+        method: 'GET',
+        url: 'api/meta/config'
+      }).then(function(response) {
+        availableEndpoints = response.data.endpoints;
+      }, function(err) {
+        console.error('Error retrieving configuration', err);
+      });
+    }
+
+    function callService(url, context) {
+      return $http({
+        method: 'POST',
+        url: url,
+        data: context
+      }).then(function(response) {
+        return response;
+      }, function(err) {
+        console.error('Error calling into service at url', url, 'Error message:', err);
+        return err;
+      });
+    }
+
   }
 
 })();
