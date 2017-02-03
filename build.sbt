@@ -64,6 +64,7 @@ lazy val staticAnalysisSettings = {
 }
 
 addCommandAlias("verify", ";compileScalastyle;testScalastyle;coverage;test;coverageReport;coverageAggregate")
+addCommandAlias("release", ";clean;compile;publishLocal;publishSigned")
 
 // *** Publishing ***
 
