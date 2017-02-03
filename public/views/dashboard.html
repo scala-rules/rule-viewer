@@ -21,7 +21,7 @@
       </form>
       <table class="table table-striped table-bordered">
         <tbody>
-          <tr ng-repeat="fact in facts | orderBy:'name' | filter:factSearch track by fact.name" ng-class="{'selected': activeFact == fact}" ng-click="selectFact(fact)">
+          <tr ng-repeat="fact in facts | orderBy:'name' | filter:factSearch track by fact.id" ng-class="{'selected': activeFact == fact}" ng-click="selectFact(fact)">
             <td>{{fact.name}}</td>
           </tr>
         </tbody>
@@ -31,7 +31,7 @@
     <div class="col-xs-12 visible-sm visible-xs">
       <select>
         <option>Kies een feit...</option>
-        <option ng-repeat="fact in facts | orderBy:'name' track by fact.name" option="{{fact.name}}">{{fact.name}}</option>
+        <option ng-repeat="fact in facts | orderBy:'name' track by fact.id" option="{{fact.name}}">{{fact.name}}</option>
       </select>
     </div>
 
@@ -46,6 +46,10 @@
             <tr>
               <th>Type</th>
               <td><code>{{activeFact.valueClass}}</code></td>
+            </tr>
+            <tr>
+              <th>Gedefinieerd in</th>
+              <td><code>{{activeFact.glossary|scalatype}}</code></td>
             </tr>
             <tr>
               <th>Omschrijving</th>

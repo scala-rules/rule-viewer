@@ -15,15 +15,15 @@
       <div class="col-md-2 form-inline">
         <div class="small form-group">
           <label for="toggleLabels" title="Toon feitnamen"><i class="fa fa-fw fa-tags"></i></label>
-          <input id="toggleLabels" type="checkbox" alt="Verberg de feitnamen" ng-model="showLabels">
+          <input id="toggleLabels" type="checkbox" alt="Verberg de feitnamen" ng-model="toggles.showLabels">
         </div>
         <div class="small form-group">
           <label for="toggleConditions" title="Toon conditie-afhankelijkheden"><i class="fa fa-fw fa-code-fork"></i></label>
-          <input id="toggleConditions" type="checkbox" alt="Verberg de conditiepaden" ng-model="showConditions">
+          <input id="toggleConditions" type="checkbox" alt="Verberg de conditiepaden" ng-model="toggles.showConditions">
         </div>
         <div class="small form-group">
           <label for="toggleEvaluations" title="Toon evaluatie-afhankelijkheden"><i class="fa fa-fw fa-plus"></i></label>
-          <input id="toggleEvaluations" type="checkbox" alt="Verberg de evaluatiepaden" ng-model="showEvaluations">
+          <input id="toggleEvaluations" type="checkbox" alt="Verberg de evaluatiepaden" ng-model="toggles.showEvaluations">
         </div>
         <div class="small form-group">
           &nbsp;
@@ -31,16 +31,16 @@
           &nbsp;
         </div>
         <div class="small form-group">
-          <label for="showGraphOnly" title="Toon graaf"><i class="fa fa-fw fa-random"></i></label>
-          <input id="showGraphOnly" type="radio" name="showGraphAndSource" value="graphOnly" alt="Toon alleen de graaf" ng-model="showGraphAndSource">
+          <label for="toggles.showGraphOnly" title="Toon graaf"><i class="fa fa-fw fa-random"></i></label>
+          <input id="toggles.showGraphOnly" type="radio" name="toggles.showGraphAndSource" value="graphOnly" alt="Toon alleen de graaf" ng-model="toggles.showGraphAndSource">
         </div>
         <div class="small form-group">
-          <label for="showGraphAndSource" title="Toon graaf en source"><i class="fa fa-fw fa-clone"></i></label>
-          <input id="showGraphAndSource" type="radio" name="showGraphAndSource" value="graphAndSource" alt="Toon de graaf en source" ng-model="showGraphAndSource">
+          <label for="toggles.showGraphAndSource" title="Toon graaf en source"><i class="fa fa-fw fa-clone"></i></label>
+          <input id="toggles.showGraphAndSource" type="radio" name="toggles.showGraphAndSource" value="graphAndSource" alt="Toon de graaf en source" ng-model="toggles.showGraphAndSource">
         </div>
         <div class="small form-group">
-          <label for="showSourceOnly" title="Toon source"><i class="fa fa-fw fa-bars"></i></label>
-          <input id="showSourceOnly" type="radio" name="showGraphAndSource" value="sourceOnly" alt="Toon alleen de source" ng-model="showGraphAndSource">
+          <label for="toggles.showSourceOnly" title="Toon source"><i class="fa fa-fw fa-bars"></i></label>
+          <input id="toggles.showSourceOnly" type="radio" name="toggles.showGraphAndSource" value="sourceOnly" alt="Toon alleen de source" ng-model="toggles.showGraphAndSource">
         </div>
       </div>
     </div>
@@ -48,43 +48,101 @@
 
   <div class="container-fluid">
     <div class="row">
-      <div class="berekeningen-graaf-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'sourceOnly'">
-        <div id="berekeningenGraafChart" class="berekeningen-graaf-chart" ng-class="{'hide-condition-links': !showConditions, 'hide-evaluation-links': !showEvaluations, 'hide-node-labels': !showLabels}" >
+      <div class="berekeningen-graaf-container" ng-class="{'col-md-6': toggles.showGraphAndSource == 'graphAndSource'}" ng-show="toggles.showGraphAndSource != 'sourceOnly'">
+        <div id="berekeningenGraafChart" class="berekeningen-graaf-chart" ng-class="{'hide-condition-links': !toggles.showConditions, 'hide-evaluation-links': !toggles.showEvaluations, 'hide-node-labels': !toggles.showLabels}" >
 
         </div>
       </div>
-      <div class="berekeningen-source-container" ng-class="{'col-md-6': showGraphAndSource == 'graphAndSource'}" ng-show="showGraphAndSource != 'graphOnly'" ng-include="'/api/sources/' + berekeningId">
+      <div class="berekeningen-source-container" ng-class="{'col-md-6': toggles.showGraphAndSource == 'graphAndSource'}" ng-show="toggles.showGraphAndSource != 'graphOnly'" ng-include="'/api/sources/' + berekeningId">
 
       </div>
     </div>
   </div>
 
+    <div class="row">
+      <div class="col-md-4">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th colspan="2">Testaanroep configureren (<button class="btn btn-link" ng-click="toggles.showExecutionConfig = !toggles.showExecutionConfig"><span ng-if="toggles.showExecutionConfig">verbergen</span><span ng-if="!toggles.showExecutionConfig">tonen</span></button>)</th>
+            </tr>
+          </thead>
+          <tbody ng-if="toggles.showExecutionConfig">
+            <tr>
+              <td>
+                Omgeving:
+              </td>
+              <td>
+                <select ng-model="selectedEndpoint" ng-options="endpoint for endpoint in endpoints"/>
+              </td>
+            </tr>
+            <tr>
+              <td>Invoervelden tonen</td>
+              <td><input type="checkbox" ng-model="toggles.showInputFields"></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <input class="btn btn-primary" type="button" value="Aanroep uitvoeren" ng-click="calculate.execute()" >
+                <input class="btn btn-warning" type="button" ng-disabled="calculate.hasNoValuesInContext" value="Uitvoer legen" ng-click="calculate.resetInput()" >
+                <input class="btn btn-danger" type="button" ng-disabled="calculate.hasNoValuesInContext" value="Alles legen" ng-click="calculate.resetAll()" >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-md-8">
+        <table class="table table-striped" ng-if="toggles.showExecutionConfig && toggles.hasExecutionHistory">
+          <thead>
+          <tr>
+            <th colspan="2">Aanroepgegevens <i ng-if="toggles.showLoadingIndicator" class="fa fa-fw fa-refresh fa-spin"></i></th>
+          </tr>
+          </thead>
+          <tbody ng-if="toggles.showExecutionConfig">
+          <tr ng-class="{ 'danger': !calculate.lastResultSuccess, 'success': calculate.lastResultSuccess }">
+            <td>
+              Status:
+            </td>
+            <td>
+              <span ng-if="calculate.lastResultSuccess">Ok</span>
+              <ul>
+                <li ng-repeat="msg in calculate.lastResultErrors">{{msg}}</li>
+              </ul>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   <div class="row">
     <div class="col-md-4">
-      <table class="table table-striped">
+      <table class="table table-striped form-inline">
         <thead>
           <tr>
-            <th>Invoerparameters</th>
+            <th colspan="2">Invoerparameters</th>
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="fact in berekeningInputs | orderBy:'name' track by fact.name" ng-class="{'selected': $parent.activeFact == fact}" ng-click="selectFact(fact)">
+          <tr ng-repeat="fact in berekeningInputs | orderBy:'name' track by fact.id" ng-class="{'selected': $parent.activeFact == fact}" ng-click="selectFact(fact)">
             <td>{{fact.name}}</td>
+            <td><input ng-if="toggles.showInputFields" class="form-control input-sm" ng-model="context[fact.name]"></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="col-md-4">
-      <table class="table table-striped">
+      <table class="table table-striped form form-inline">
         <thead>
           <tr>
-            <th>Uitvoerparameters</th>
+            <th colspan="2">Uitvoerparameters</th>
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="fact in berekeningOutputs | orderBy:'name' track by fact.name" ng-class="{'selected': activeFact == fact}" ng-click="selectFact(fact)">
+          <tr ng-repeat="fact in berekeningOutputs | orderBy:'name' track by fact.id" ng-class="{'selected': activeFact == fact}" ng-click="selectFact(fact)">
             <td>{{fact.name}}</td>
+            <td><input ng-if="toggles.showInputFields" class="form-control input-sm" ng-model="context[fact.name]"></td>
           </tr>
         </tbody>
       </table>
@@ -100,11 +158,20 @@
           </tr>
           <tr>
             <th>Type</th>
-            <td><code>{{activeFact.valueClass|javatype}}</code></td>
+            <td><code title="{{activeFact.valueClass}}">{{activeFact.valueClass|javatype}}</code></td>
+          </tr>
+          <tr>
+            <th>Gedefinieerd in</th>
+            <td><code title="{{activeFact.glossary}}">{{activeFact.glossary|scalatype}}</code></td>
           </tr>
           <tr>
             <th>Omschrijving</th>
             <td>{{activeFact.description}}</td>
+          </tr>
+          <tr>
+            <th>Huidige waarde</th>
+            <td ng-if="context[activeFact.name]"><code>{{context[activeFact.name]}}</code></td>
+            <td ng-if="!context[activeFact.name]"><em>Geen waarde</em></td>
           </tr>
           <tr>
             <th>Gebruikt in</th>
@@ -123,5 +190,23 @@
       </div>
     </div>
 
+  </div>
+
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th colspan="2">Tussenresultaten (<button class="btn btn-link" ng-click="toggles.showIntermediates = !toggles.showIntermediates"><span ng-if="toggles.showIntermediates">verbergen</span><span ng-if="!toggles.showIntermediates">tonen</span></button>)</th>
+          </tr>
+        </thead>
+        <tbody ng-if="toggles.showIntermediates">
+          <tr ng-repeat="fact in berekeningIntermediates | orderBy:'name' track by fact.id" ng-class="{'selected': $parent.activeFact == fact}" ng-click="selectFact(fact)">
+            <td>{{fact.name}}</td>
+            <td><input ng-if="toggles.showInputFields" ng-model="context[fact.name]"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

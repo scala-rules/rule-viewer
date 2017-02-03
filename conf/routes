@@ -12,7 +12,7 @@ GET /api/jars/:id                                                           cont
 GET /api/meta/jars                                                          controllers.JarsController.listConfiguration
 GET /api/meta/jars/:id                                                      controllers.JarsController.configurationById(id)
 
-
+GET /api/meta/config                                                        controllers.ConfigurationController.all
 
 # Routes for static parts of the application
 
