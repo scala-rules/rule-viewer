@@ -187,6 +187,8 @@
 
     $scope.calculate = {
       hasNoValuesInContext: !angular.equals($scope.context, {}),
+      hasIntermediateValues: false,
+      hasOutputValues: false,
       lastResultSuccess: false,
       lastResultErrors: {},
       execute: function() {
@@ -216,8 +218,21 @@
           ];
         });
       },
-      resetInput: function() {
-        copyContextValuesFromSource($scope.context, $scope.originalInput);
+      resetOutputs: function() {
+        $scope.berekening.outputs.forEach(function(i) {
+          var factName = $scope.berekening.nodes[i].name;
+          if ($scope.context.hasOwnProperty(factName)) {
+            delete $scope.context[factName];
+          }
+        });
+      },
+      resetIntermediates: function() {
+        $scope.berekening.intermediates.forEach(function(i) {
+          var factName = $scope.berekening.nodes[i].name;
+          if ($scope.context.hasOwnProperty(factName)) {
+            delete $scope.context[factName];
+          }
+        });
       },
       resetAll: function() {
         copyContextValuesFromSource($scope.context, {});
@@ -235,6 +250,20 @@
       };
     }(), function() {
       $scope.calculate.hasNoValuesInContext = angular.equals($scope.context, {});
+      $scope.calculate.hasIntermediateValues = false;
+      $scope.calculate.hasOutputValues = false;
+
+      $scope.intermediates.forEach(function(i) {
+        if ($scope.context.hasOwnProperty($scope.berekening.nodes[i].name)) {
+          $scope.calculate.hasIntermediateValues = true;
+        }
+      });
+
+      $scope.outputs.forEach(function(i) {
+        if ($scope.context.hasOwnProperty($scope.berekening.nodes[i].name)) {
+          $scope.calculate.hasOutputValues = true;
+        }
+      });
     });
 
     function copyContextValuesFromSource(target, template) {

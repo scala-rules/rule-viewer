@@ -60,7 +60,7 @@
   </div>
 
     <div class="row">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <table class="table table-striped">
           <thead>
             <tr>
@@ -83,7 +83,8 @@
             <tr>
               <td colspan="2">
                 <input class="btn btn-primary" type="button" value="Aanroep uitvoeren" ng-click="calculate.execute()" >
-                <input class="btn btn-warning" type="button" ng-disabled="calculate.hasNoValuesInContext" value="Uitvoer legen" ng-click="calculate.resetInput()" >
+                <input class="btn btn-warning" type="button" ng-disabled="!calculate.hasIntermediateValues" value="Tussenresultaten legen" ng-click="calculate.resetIntermediates()" >
+                <input class="btn btn-warning" type="button" ng-disabled="!calculate.hasOutputValues" value="Uitvoer legen" ng-click="calculate.resetOutputs()" >
                 <input class="btn btn-danger" type="button" ng-disabled="calculate.hasNoValuesInContext" value="Alles legen" ng-click="calculate.resetAll()" >
               </td>
             </tr>
@@ -91,7 +92,7 @@
         </table>
       </div>
 
-      <div class="col-md-8">
+      <div class="col-md-6">
         <table class="table table-striped" ng-if="toggles.showExecutionConfig && toggles.hasExecutionHistory">
           <thead>
           <tr>
@@ -197,7 +198,10 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th colspan="2">Tussenresultaten (<button class="btn btn-link" ng-click="toggles.showIntermediates = !toggles.showIntermediates"><span ng-if="toggles.showIntermediates">verbergen</span><span ng-if="!toggles.showIntermediates">tonen</span></button>)</th>
+            <th colspan="2">
+              Tussenresultaten
+              (<button class="btn btn-link" ng-click="toggles.showIntermediates = !toggles.showIntermediates"><span ng-if="toggles.showIntermediates">verbergen</span><span ng-if="!toggles.showIntermediates">tonen</span></button>)
+            </th>
           </tr>
         </thead>
         <tbody ng-if="toggles.showIntermediates">
